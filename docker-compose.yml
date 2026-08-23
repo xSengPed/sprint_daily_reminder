@@ -1,23 +1,6 @@
 services:
-  backend:
-    # backend อยู่คนละ repo — ต้อง clone ไว้ข้างกันกับ repo นี้
-    # เปลี่ยนเป็น image: ... ได้ถ้าไป build/push เก็บไว้ใน registry แล้ว
-    build:
-      context: ../sprint_reminder_backend
-    environment:
-      NODE_ENV: production
-      PORT: "4000"
-      MONGODB_URI: ${MONGODB_URI:?ต้องตั้ง MONGODB_URI ในไฟล์ .env}
-      MONGODB_DB: ${MONGODB_DB:-sprint_reminder}
-      # เรียกผ่าน Caddy ที่ origin เดียวกัน จึงไม่ต้องเปิด CORS ให้ใคร
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
+  # backend deploy แยก stack ของตัวเองใน Portainer (ดู sprint_reminder_backend/docker-compose.yml)
+  # Caddy ที่นี่ยิงเข้าไปหา backend ผ่าน host network แทนการ build รวมกัน
 
   frontend:
     build:
@@ -26,13 +9,17 @@ services:
         # /api = ยิงกลับมาที่ origin เดิมแล้วให้ Caddy ส่งต่อไป backend
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
     restart: unless-stopped
-    depends_on:
-      - backend
 
   caddy:
     image: caddy:2-alpine
     ports:
       - "${HTTP_PORT:-80}:80"
+    environment:
+      # ที่อยู่ backend stack ที่ deploy แยกไว้แล้ว (ปกติคือ host เดียวกัน พอร์ตที่ publish ไว้)
+      BACKEND_ADDR: ${BACKEND_ADDR:-host.docker.internal:4000}
+    extra_hosts:
+      # Linux ต้องเปิดเองถึงจะ resolve host.docker.internal ได้ (Docker 20.10+)
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -40,7 +27,6 @@ services:
     restart: unless-stopped
     depends_on:
       - frontend
-      - backend
 
 volumes:
   caddy_data:
