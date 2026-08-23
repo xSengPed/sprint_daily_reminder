@@ -58,10 +58,22 @@ docker compose version   # ต้องขึ้นเวอร์ชัน ไ�
 
 ## 3. เอาโค้ดขึ้นเครื่อง
 
+frontend กับ backend อยู่คนละ repo และ `docker-compose.yml` อ้าง `../sprint_reminder_backend`
+จึงต้อง clone ไว้ข้างกัน
+
 ```bash
-mkdir -p /opt && cd /opt
-git clone <url ของ repo นี้> daily_reminder
+mkdir -p /opt/daily && cd /opt/daily
+git clone <url ของ repo frontend> daily_reminder
+git clone <url ของ repo backend> sprint_reminder_backend
 cd daily_reminder
+```
+
+ได้โครงแบบนี้
+
+```
+/opt/daily/
+  daily_reminder/            <- รันคำสั่ง docker compose ที่นี่
+  sprint_reminder_backend/
 ```
 
 ถ้ายังไม่มี git remote ใช้ `scp -r` จากเครื่องตัวเองก็ได้ (อย่าลืม **ไม่ต้อง**ก๊อป `node_modules`)
@@ -100,15 +112,15 @@ docker compose logs -f backend       # ดู log
 curl http://localhost/api/health     # {"data":{"ok":true,"db":"connected",...}}
 ```
 
-ตอนขึ้นครั้งแรก backend จะ seed วันหยุดจาก `sprint_reminder_backend/data/holidays.ics` ให้อัตโนมัติ (เฉพาะตอนที่ collection ยังว่าง)
+ตอนขึ้นครั้งแรก backend จะ seed วันหยุดจาก `data/holidays.ics` ของ repo backend ให้อัตโนมัติ (เฉพาะตอนที่ collection ยังว่าง)
 
 ---
 
 ## อัปเดตเวอร์ชันใหม่
 
 ```bash
-cd /opt/daily_reminder
-git pull
+cd /opt/daily/sprint_reminder_backend && git pull
+cd /opt/daily/daily_reminder && git pull
 docker compose up -d --build
 ```
 

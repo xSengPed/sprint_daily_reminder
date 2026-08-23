@@ -7,24 +7,31 @@ Web app จัดการ daily standup ของ 2 squad ในหน้าเ
 | Zeny    | 10:00 - 10:15 |
 | LedgerX | 10:45 - 11:00 |
 
-โปรเจกต์นี้มี 2 ส่วน: frontend (Next.js) ที่รากโปรเจกต์ และ backend (Express + MongoDB) ใน [sprint_reminder_backend/](sprint_reminder_backend/)
+repo นี้เป็น **frontend อย่างเดียว** ส่วน API อยู่คนละ repo ที่ `sprint_reminder_backend`
+ให้ clone ไว้ข้างกันแบบนี้ (คำสั่ง docker compose อ้าง path นี้)
+
+```
+<โฟลเดอร์ที่เก็บโปรเจกต์>/
+  daily_reminder/            <- repo นี้
+  sprint_reminder_backend/   <- repo ของ API
+```
 
 ## เริ่มใช้งาน
 
 เปิด 2 เทอร์มินัล — backend ต้องขึ้นก่อน frontend จึงจะซิงก์ข้อมูลได้
 
 ```bash
-# เทอร์มินัลที่ 1 — backend
-cd sprint_reminder_backend
+# เทอร์มินัลที่ 1 — backend (อีก repo)
+cd ../sprint_reminder_backend
 npm install
 npm run dev      # http://localhost:4000/api
 
-# เทอร์มินัลที่ 2 — frontend
+# เทอร์มินัลที่ 2 — frontend (repo นี้)
 npm install
 npm run dev      # http://localhost:3000
 ```
 
-ที่อยู่ API ตอน dev ตั้งไว้ใน `.env.local` (`NEXT_PUBLIC_API_URL=http://localhost:4000/api`) ส่วนค่าเชื่อมต่อ MongoDB อยู่ใน `sprint_reminder_backend/.env` — ทั้งสองไฟล์ถูก gitignore ไว้
+ที่อยู่ API ตอน dev ตั้งไว้ใน `.env.local` (`NEXT_PUBLIC_API_URL=http://localhost:4000/api`) ส่วนค่าเชื่อมต่อ MongoDB อยู่ใน `.env` ของ repo backend — ทั้งสองไฟล์ถูก gitignore ไว้
 
 คำสั่งอื่น: `npm run build` (build production), `npm start` (รัน build ที่ได้)
 
@@ -54,7 +61,7 @@ npm run dev      # http://localhost:3000
 - ปุ่ม **นำเข้าไฟล์ .ics** อัปโหลดปฏิทินวันหยุดชุดใหม่ทับของเดิมได้จากหน้าเว็บเลย โดย**ไม่ลบวันลาที่เพิ่มเอง**
 - วันหยุดถูกแคชไว้ใน `localStorage` ด้วย เปิดดูได้แม้ backend ล่ม
 
-วันหยุดตั้งต้นมาจากไฟล์ `sprint_reminder_backend/data/holidays.ics` — ดูวิธีเปลี่ยนไฟล์ได้ที่ [data/README.md](sprint_reminder_backend/data/README.md)
+วันหยุดตั้งต้นมาจากไฟล์ `data/holidays.ics` ของ repo backend — วิธีเปลี่ยนไฟล์อยู่ใน `data/README.md` ของ repo นั้น
 
 ## คีย์ลัด
 
@@ -108,14 +115,16 @@ cp .env.example .env     # แก้ MONGODB_URI ให้ชี้ไปที�
 docker compose up -d --build
 ```
 
+compose ไฟล์นี้ build backend จาก `../sprint_reminder_backend` จึงต้อง clone repo นั้นไว้ข้างกันก่อน
+
 เว็บกับ API อยู่ origin เดียวกันผ่าน Caddy (`/api/*` → backend) จึงไม่ต้องตั้ง CORS และไม่ต้องฝัง IP เซิร์ฟเวอร์ลงใน bundle
 
 ขั้นตอนแบบละเอียดสำหรับ **Proxmox** (สร้าง LXC, เปิด nesting, ติดตั้ง Docker, อัปเดตเวอร์ชัน, HTTPS) อยู่ใน [deploy/README.md](deploy/README.md)
 
 ## Backend
 
-รายละเอียด API ทั้งหมดอยู่ใน [sprint_reminder_backend/README.md](sprint_reminder_backend/README.md)
+อยู่คนละ repo — รายละเอียด API ทั้งหมดอยู่ใน README ของ repo `sprint_reminder_backend`
 
 ## ปรับแต่ง
 
-แก้ชื่อ squad หรือเวลา daily ได้ที่ [src/lib/squads.ts](src/lib/squads.ts) — เพิ่ม squad ใหม่ในอาร์เรย์ได้เลย หน้าเว็บกับนาฬิกาจะปรับตามเอง (อย่าลืมเพิ่ม id ใหม่ใน `SquadId` ที่ [src/lib/types.ts](src/lib/types.ts) และใน [sprint_reminder_backend/src/config/squads.ts](sprint_reminder_backend/src/config/squads.ts) เพราะฝั่ง backend ตรวจ squadId ที่ไม่รู้จักทิ้ง)
+แก้ชื่อ squad หรือเวลา daily ได้ที่ [src/lib/squads.ts](src/lib/squads.ts) — เพิ่ม squad ใหม่ในอาร์เรย์ได้เลย หน้าเว็บกับนาฬิกาจะปรับตามเอง (อย่าลืมเพิ่ม id ใหม่ใน `SquadId` ที่ [src/lib/types.ts](src/lib/types.ts) และใน `src/config/squads.ts` ของ repo backend ด้วย เพราะฝั่ง backend ตรวจ squadId ที่ไม่รู้จักทิ้ง)

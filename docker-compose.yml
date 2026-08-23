@@ -1,7 +1,9 @@
 services:
   backend:
+    # backend อยู่คนละ repo — ต้อง clone ไว้ข้างกันกับ repo นี้
+    # เปลี่ยนเป็น image: ... ได้ถ้าไป build/push เก็บไว้ใน registry แล้ว
     build:
-      context: ./sprint_reminder_backend
+      context: ../sprint_reminder_backend
     environment:
       NODE_ENV: production
       PORT: "4000"

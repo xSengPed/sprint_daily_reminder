@@ -15,16 +15,20 @@ Daily ประกอบด้วย 3 ช่อง: **เมื่อวาน�
 
 ## โครงสร้าง repo
 
-โปรเจกต์เดียวแต่มี 2 แอป — ไม่ได้ใช้ monorepo tool ต้อง `npm install` แยกกัน
+repo นี้คือ **frontend อย่างเดียว** — API อยู่คนละ repo (`sprint_reminder_backend`)
+ที่ต้อง clone ไว้ข้างกัน เพราะ `docker-compose.yml` อ้าง `../sprint_reminder_backend`
 
 ```
-/                        frontend: Next.js 15 (App Router) + React 19 + TypeScript
-  src/app/               หน้า / (daily) และ /calendar
-  src/components/        UI ทั้งหมด
-  src/lib/               state, API client, utils
-sprint_reminder_backend/ backend: Express 5 + Mongoose + zod
-deploy/                  Caddyfile + คู่มือ deploy ขึ้น Proxmox
+daily_reminder/            <- repo นี้ (Next.js 15 App Router + React 19 + TS)
+  src/app/                 หน้า / (daily) และ /calendar
+  src/components/          UI ทั้งหมด
+  src/lib/                 state, API client, utils
+  deploy/                  Caddyfile + คู่มือ deploy ขึ้น Proxmox
+sprint_reminder_backend/   <- อีก repo (Express 5 + Mongoose + zod)
 ```
+
+**ถ้างานที่ได้รับต้องแก้ทั้งสองฝั่ง** (เช่นเพิ่มฟิลด์ใหม่ใน daily) ต้องเข้าไปแก้ที่ repo backend ด้วย
+อย่าแก้แค่ฝั่งเว็บแล้วคิดว่าจบ
 
 CSS เป็นไฟล์เดียวที่ [src/app/globals.css](src/app/globals.css) ใช้ CSS variable เป็น design token
 **ไม่มี Tailwind และไม่มี CSS-in-JS** — เพิ่มสไตล์ใหม่ให้เขียนต่อในไฟล์นี้ตามหมวดที่มีอยู่
@@ -34,13 +38,13 @@ CSS เป็นไฟล์เดียวที่ [src/app/globals.css](src/a
 ต้องใช้ Node 20 ขึ้นไป (พัฒนาบน Node 22, image ที่ deploy ใช้ `node:22-alpine`)
 
 ```bash
-# frontend (ราก repo)
+# frontend (repo นี้)
 npm install
 npm run dev              # http://localhost:3000
 npm run build            # ต้องผ่านก่อนถือว่างานเสร็จ
 
-# backend
-cd sprint_reminder_backend
+# backend (อีก repo)
+cd ../sprint_reminder_backend
 npm install
 npm run dev              # http://localhost:4000/api — tsx watch คอมไพล์สดให้
 npm run typecheck        # tsc --noEmit
@@ -58,7 +62,7 @@ npm start                # build ใหม่ให้ก่อนเสมอ�
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 ```
 
-`/sprint_reminder_backend/.env`
+`../sprint_reminder_backend/.env`
 
 ```env
 MONGODB_URI=mongodb://admin:<รหัสผ่าน>@10.0.0.141:27017/?authSource=admin
@@ -86,8 +90,8 @@ backend จะเชื่อมต่อไม่ได้ ให้รัน M
 เปลี่ยนค่าแล้วต้อง build ใหม่ ตอน deploy จึงตั้งเป็น `/api` แล้วให้ Caddy ส่งต่อไป backend ที่ origin เดียวกัน
 
 **ตั้งค่า squad อยู่ 2 ที่ ต้องตรงกัน**
-[src/lib/squads.ts](src/lib/squads.ts) (ชื่อ/เวลา/สี) กับ
-[sprint_reminder_backend/src/config/squads.ts](sprint_reminder_backend/src/config/squads.ts) (ใช้ validate `squadId`)
+[src/lib/squads.ts](src/lib/squads.ts) (ชื่อ/เวลา/สี) กับ `src/config/squads.ts` ของ repo backend
+(ใช้ validate `squadId`) — **อยู่คนละ repo ยิ่งต้องระวังลืม**
 เพิ่ม squad ใหม่ต้องแก้ทั้งสองไฟล์ + `SquadId` ใน [src/lib/types.ts](src/lib/types.ts)
 
 **วันหยุดมี 3 ประเภท**
@@ -96,7 +100,7 @@ backend จะเชื่อมต่อไม่ได้ ให้รัน M
 
 **วันหยุดไม่ได้ดึงสดจาก bot.or.th**
 หน้าเว็บ ธปท. โหลดข้อมูลผ่าน endpoint ภายในที่ตอบ "under maintenance" จากภายนอก และ API ทางการ
-ต้องสมัครเอา `X-IBM-Client-Id` ก่อน — รายละเอียดอยู่ใน [sprint_reminder_backend/data/README.md](sprint_reminder_backend/data/README.md)
+ต้องสมัครเอา `X-IBM-Client-Id` ก่อน — รายละเอียดอยู่ใน `data/README.md` ของ repo backend
 ตอนนี้ใช้ไฟล์ `.ics` แทน และ seed อัตโนมัติตอนเริ่มเซิร์ฟเวอร์เมื่อ collection ยังว่าง
 
 **วันที่ใช้ string `yyyy-mm-dd` ตลอดทั้งระบบ**
