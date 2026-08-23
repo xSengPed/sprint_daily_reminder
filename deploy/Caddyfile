@@ -1,0 +1,13 @@
+# หน้าเว็บกับ API อยู่ origin เดียวกัน จึงไม่ต้องยุ่งกับ CORS
+# และไม่ต้องฝัง IP ของเซิร์ฟเวอร์ลงใน bundle ของ frontend
+:80 {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy backend:4000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

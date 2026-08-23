@@ -24,7 +24,7 @@ npm install
 npm run dev      # http://localhost:3000
 ```
 
-ที่อยู่ API ตั้งไว้ใน `.env.local` (`NEXT_PUBLIC_API_URL`) ส่วนค่าเชื่อมต่อ MongoDB อยู่ใน `sprint_reminder_backend/.env` — ทั้งสองไฟล์ถูก gitignore ไว้
+ที่อยู่ API ตอน dev ตั้งไว้ใน `.env.local` (`NEXT_PUBLIC_API_URL=http://localhost:4000/api`) ส่วนค่าเชื่อมต่อ MongoDB อยู่ใน `sprint_reminder_backend/.env` — ทั้งสองไฟล์ถูก gitignore ไว้
 
 คำสั่งอื่น: `npm run build` (build production), `npm start` (รัน build ที่ได้)
 
@@ -98,6 +98,19 @@ src/
     store.tsx         React context: state + draft ที่ยังไม่บันทึก + เรียก API
     theme.ts          อ่าน-เขียนธีม + สคริปต์กันจอกะพริบ
 ```
+
+## Deploy
+
+มี Docker Compose ให้พร้อมใช้: Caddy (reverse proxy) → Next.js + Express โดยใช้ MongoDB ตัวเดิมที่มีอยู่
+
+```bash
+cp .env.example .env     # แก้ MONGODB_URI ให้ชี้ไปที่ MongoDB ของคุณ
+docker compose up -d --build
+```
+
+เว็บกับ API อยู่ origin เดียวกันผ่าน Caddy (`/api/*` → backend) จึงไม่ต้องตั้ง CORS และไม่ต้องฝัง IP เซิร์ฟเวอร์ลงใน bundle
+
+ขั้นตอนแบบละเอียดสำหรับ **Proxmox** (สร้าง LXC, เปิด nesting, ติดตั้ง Docker, อัปเดตเวอร์ชัน, HTTPS) อยู่ใน [deploy/README.md](deploy/README.md)
 
 ## Backend
 

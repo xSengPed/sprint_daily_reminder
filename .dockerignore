@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+sprint_reminder_backend
+.git
+.gitignore
+*.md
+.env
+.env.local
+.env*.local
+Dockerfile
+docker-compose.yml
+deploy
