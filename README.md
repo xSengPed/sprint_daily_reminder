@@ -119,6 +119,9 @@ compose ไฟล์นี้ build backend จาก `../sprint_reminder_backen
 
 เว็บกับ API อยู่ origin เดียวกันผ่าน Caddy (`/api/*` → backend) จึงไม่ต้องตั้ง CORS และไม่ต้องฝัง IP เซิร์ฟเวอร์ลงใน bundle
 
+มี GitHub Actions ให้ด้วย — merge เข้า `master` ที่ repo ไหน (frontend หรือ backend) ก็ deploy ทั้งระบบให้อัตโนมัติ
+ผ่าน self-hosted runner บนเครื่องปลายทาง ([.github/workflows/](.github/workflows/))
+
 ขั้นตอนแบบละเอียดสำหรับ **Proxmox** (สร้าง LXC, เปิด nesting, ติดตั้ง Docker, อัปเดตเวอร์ชัน, HTTPS) อยู่ใน [deploy/README.md](deploy/README.md)
 
 ## Backend

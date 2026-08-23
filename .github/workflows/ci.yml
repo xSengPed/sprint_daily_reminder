@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build frontend
+    # ใช้ runner ของ GitHub ได้เพราะแค่ build ไม่ต้องแตะเครื่องใน LAN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          # ต้องตรงกับที่ใช้ตอน deploy จริง เพราะค่านี้ถูกฝังลง bundle ตอน build
+          NEXT_PUBLIC_API_URL: /api
+        run: npm run build

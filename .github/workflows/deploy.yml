@@ -1,0 +1,16 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: # กดสั่ง deploy เองได้จากหน้า Actions
+
+jobs:
+  deploy:
+    name: Deploy to Proxmox
+    # runner ตัวนี้ติดตั้งอยู่บน LXC ที่รัน Docker — ไม่ต้องเปิดพอร์ตเข้าบ้าน
+    runs-on: [self-hosted, daily-reminder]
+    steps:
+      # ไม่ต้อง checkout เพราะสคริปต์ทำงานกับโค้ดที่ /opt/daily ไม่ใช่ workspace ของ runner
+      - name: Pull + rebuild + health check
+        run: /opt/daily/deploy.sh

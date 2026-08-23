@@ -1,0 +1,7 @@
+* text=auto
+
+# ไฟล์พวกนี้ต้องเป็น LF เสมอ ถ้าโดน CRLF ติดไปจะรันบน Linux ไม่ได้
+# (bash จะฟ้อง bad interpreter: /usr/bin/env bash^M)
+*.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf

@@ -137,6 +137,85 @@ docker compose exec backend sh    # เข้าไปดูข้างใน c
 
 ---
 
+## CI/CD (GitHub Actions)
+
+merge เข้า `master` ที่ repo ไหนก็ได้ → deploy ทั้งระบบให้อัตโนมัติ
+
+| Workflow                  | รันที่ไหน            | ทำอะไร                                        |
+| ------------------------- | -------------------- | --------------------------------------------- |
+| `ci.yml` (ทั้ง 2 repo)     | runner ของ GitHub    | build / typecheck ทุก push และ PR              |
+| `deploy.yml` (ทั้ง 2 repo) | self-hosted บน LXC   | `git pull` ทั้ง 2 repo → `compose up --build` → health check |
+
+**ทำไมต้อง self-hosted runner** — เครื่องนี้อยู่ใน LAN runner ของ GitHub ยิงเข้ามาไม่ได้
+ถ้าจะให้ GitHub ยิงเข้ามาต้องเปิดพอร์ต SSH ออกอินเทอร์เน็ตหรือทำ VPN ซึ่งเสี่ยงและยุ่งกว่า
+runner แบบนี้ต่อออกขาเดียว (outbound) ไม่ต้องเปิดพอร์ตเข้าบ้านเลย
+
+### 1. ติดตั้งสคริปต์ deploy
+
+```bash
+cd /opt/daily/daily_reminder
+cp deploy/deploy.sh /opt/daily/deploy.sh
+chmod +x /opt/daily/deploy.sh
+/opt/daily/deploy.sh          # ลองรันมือดูสักครั้งก่อนต่อ CI
+```
+
+สคริปต์วางไว้นอก repo ตั้งใจ — ถ้าอยู่ในนั้น `git pull` จะเขียนทับไฟล์ที่กำลังรันอยู่
+และมี `flock` กันไว้ ถ้า FE กับ BE merge พร้อมกันจะ deploy ทีละคิว ไม่ชนกัน
+
+### 2. ติดตั้ง self-hosted runner (ทำครั้งเดียว ใช้ร่วมกันทั้ง 2 repo)
+
+ที่ GitHub: **Settings → Actions → Runners → New self-hosted runner** (เลือก Linux x64)
+แล้วทำตามคำสั่งที่หน้านั้นให้ในเครื่อง LXC
+
+```bash
+adduser --disabled-password --gecos "" runner
+usermod -aG docker runner        # ต้องอยู่กลุ่ม docker ไม่งั้นสั่ง docker ไม่ได้
+mkdir -p /opt/actions-runner && chown runner:runner /opt/actions-runner
+su - runner
+
+cd /opt/actions-runner
+curl -o runner.tar.gz -L <ลิงก์ที่ GitHub ให้มา>
+tar xzf runner.tar.gz
+./config.sh --url https://github.com/<user>/<repo> --token <token จากหน้าเว็บ>   --labels daily-reminder --unattended
+exit
+
+cd /opt/actions-runner && ./svc.sh install runner && ./svc.sh start
+```
+
+**label `daily-reminder` สำคัญ** — workflow ระบุ `runs-on: [self-hosted, daily-reminder]` ไว้
+
+ให้ runner มองเห็นทั้ง 2 repo เลือกอย่างใดอย่างหนึ่ง
+
+- ติดตั้ง runner ที่ **organization/enterprise level** แล้วแชร์ให้ทั้ง 2 repo (ถ้าเป็น org)
+- หรือ **ติดตั้ง 2 ตัวในเครื่องเดียว** คนละโฟลเดอร์ (`/opt/actions-runner-fe`, `/opt/actions-runner-be`) ผูก repo ละตัว
+  ใช้ label เดียวกันได้ และ `flock` ในสคริปต์กันชนให้แล้ว
+
+ต้องให้สิทธิ์ runner สั่ง `git` ในโฟลเดอร์ `/opt/daily` ด้วย
+
+```bash
+chown -R runner:runner /opt/daily
+```
+
+### 3. ตรวจว่าใช้ได้
+
+push อะไรสักอย่างเข้า `master` แล้วดูที่แท็บ **Actions** ของ repo
+หรือกด **Run workflow** ที่ workflow ชื่อ Deploy เพื่อสั่ง deploy เองโดยไม่ต้อง push
+
+### ย้อนกลับเวอร์ชันก่อนหน้า
+
+```bash
+cd /opt/daily/daily_reminder
+git reset --hard <commit เก่า>
+docker compose up -d --build
+```
+
+หรือ `git revert` แล้ว push — pipeline จะ deploy ให้เอง (ทางนี้ปลอดภัยกว่าเพราะโค้ดบนเครื่องยังตรงกับ remote)
+
+> ครั้งถัดไปที่ deploy สคริปต์ทำ `git reset --hard origin/master` แปลว่า**ของที่แก้ค้างไว้บนเครื่องจะหาย**
+> ตั้งใจให้เป็นแบบนี้ เพื่อให้สิ่งที่รันอยู่ตรงกับโค้ดบน GitHub เสมอ
+
+---
+
 ## เรื่องที่ต้องเช็กก่อนใช้งานจริง
 
 **MongoDB ต้องยอมให้ container เชื่อมต่อ**
