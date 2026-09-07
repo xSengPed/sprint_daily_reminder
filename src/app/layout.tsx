@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { HolidaysProvider } from "@/lib/holidays";
+import { SprintProvider } from "@/lib/sprint";
 import { StoreProvider } from "@/lib/store";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -25,7 +26,9 @@ export default function RootLayout({
       </head>
       <body>
         <StoreProvider>
-          <HolidaysProvider>{children}</HolidaysProvider>
+          <HolidaysProvider>
+            <SprintProvider>{children}</SprintProvider>
+          </HolidaysProvider>
         </StoreProvider>
       </body>
     </html>

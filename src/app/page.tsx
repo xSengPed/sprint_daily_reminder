@@ -8,6 +8,7 @@ import SquadCard from "@/components/SquadCard";
 import StandupClock from "@/components/StandupClock";
 import PageNav from "@/components/PageNav";
 import SaveStatus from "@/components/SaveStatus";
+import SprintBadge from "@/components/SprintBadge";
 import ThemeToggle from "@/components/ThemeToggle";
 import { formatThai, shiftDays, todayKey } from "@/lib/date";
 import { toPlainText } from "@/lib/format";
@@ -133,6 +134,7 @@ export default function Page() {
           </div>
         </div>
         <div className="topbar-actions">
+          <SprintBadge onToast={showToast} />
           <PageNav current="daily" />
           <StandupClock nowMinutes={nowMinutes} />
           <SaveStatus onToast={showToast} />

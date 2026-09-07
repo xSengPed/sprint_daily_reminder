@@ -1,4 +1,4 @@
-import type { Entry, Holiday, SquadId } from "./types";
+import type { Entry, Holiday, OtDeduction, OtEntry, SquadId } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
 
@@ -17,6 +17,11 @@ type EntryResponse = Omit<Entry, "updatedAt"> & {
   createdAt?: string;
   updatedAt?: string;
 };
+
+type OtEntryResponse = OtEntry & { createdAt?: string; updatedAt?: string };
+type OtDeductionResponse = OtDeduction & { createdAt?: string; updatedAt?: string };
+type OtEntryInput = Omit<OtEntry, "id" | "hours">;
+type OtDeductionInput = Omit<OtDeduction, "id">;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
@@ -128,4 +133,43 @@ export const api = {
         }),
       }
     ),
+
+  getSprint: async (): Promise<number> =>
+    (await request<{ number: number }>("/sprint")).number,
+
+  setSprint: async (number: number): Promise<number> =>
+    (
+      await request<{ number: number }>("/sprint", {
+        method: "PUT",
+        body: JSON.stringify({ number }),
+      })
+    ).number,
+
+  listOtEntries: () => request<OtEntryResponse[]>("/ot/entries"),
+
+  createOtEntry: (entry: OtEntryInput) =>
+    request<OtEntryResponse>("/ot/entries", {
+      method: "POST",
+      body: JSON.stringify(entry),
+    }),
+
+  updateOtEntry: (id: string, entry: OtEntryInput) =>
+    request<OtEntryResponse>(`/ot/entries/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(entry),
+    }),
+
+  deleteOtEntry: (id: string) =>
+    request<{ deleted: number }>(`/ot/entries/${id}`, { method: "DELETE" }),
+
+  listOtDeductions: () => request<OtDeductionResponse[]>("/ot/deductions"),
+
+  createOtDeduction: (deduction: OtDeductionInput) =>
+    request<OtDeductionResponse>("/ot/deductions", {
+      method: "POST",
+      body: JSON.stringify(deduction),
+    }),
+
+  deleteOtDeduction: (id: string) =>
+    request<{ deleted: number }>(`/ot/deductions/${id}`, { method: "DELETE" }),
 };

@@ -37,3 +37,28 @@ export type Holiday = {
   type: "public" | "observance" | "leave";
   source?: string;
 };
+
+/** แถวบันทึกชั่วโมง OT 1 ช่วงเวลา */
+export type OtEntry = {
+  id: string;
+  /** yyyy-mm-dd */
+  date: string;
+  /** HH:mm */
+  startTime: string;
+  /** HH:mm */
+  endTime: string;
+  description: string;
+  hours: number;
+};
+
+/** จำนวนวันหยุดชดเชยที่หักได้ต่อครั้ง */
+export type OtDeductionAmount = 0.5 | 1;
+
+/** ประวัติการหักวันหยุดชดเชยที่สะสมจาก OT */
+export type OtDeduction = {
+  id: string;
+  /** yyyy-mm-dd */
+  date: string;
+  days: OtDeductionAmount;
+  note: string;
+};
