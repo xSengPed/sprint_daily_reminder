@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LeaveModal from "@/components/LeaveModal";
 import PageNav from "@/components/PageNav";
+import SprintBadge from "@/components/SprintBadge";
 import ThemeToggle from "@/components/ThemeToggle";
 import {
   formatThai,
@@ -104,6 +105,7 @@ export default function CalendarPage() {
           </div>
         </div>
         <div className="topbar-actions">
+          <SprintBadge onToast={showToast} />
           <PageNav current="calendar" />
           <ThemeToggle />
         </div>

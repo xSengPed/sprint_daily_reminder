@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 
-type Props = { current: "daily" | "calendar" };
+type Props = { current: "daily" | "calendar" | "ot" };
 
 const LINKS = [
   { key: "daily", href: "/", label: "Daily" },
   { key: "calendar", href: "/calendar", label: "ปฏิทิน" },
+  { key: "ot", href: "/ot", label: "OT" },
 ] as const;
 
 export default function PageNav({ current }: Props) {
