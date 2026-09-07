@@ -413,6 +413,15 @@ a {
   color: var(--text);
 }
 
+.btn.danger {
+  color: var(--danger);
+}
+
+.btn.danger:hover {
+  background: rgba(229, 72, 77, 0.1);
+  color: var(--danger);
+}
+
 .btn.sm {
   padding: 5px 10px;
   font-size: 12.5px;

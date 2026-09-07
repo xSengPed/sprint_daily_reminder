@@ -38,6 +38,9 @@ export type Holiday = {
   source?: string;
 };
 
+/** ตัวคูณ OT — ชั่วโมงสะสมจริง = hours * multiplier */
+export type OtMultiplier = 1 | 1.5 | 1.75;
+
 /** แถวบันทึกชั่วโมง OT 1 ช่วงเวลา */
 export type OtEntry = {
   id: string;
@@ -48,7 +51,9 @@ export type OtEntry = {
   /** HH:mm */
   endTime: string;
   description: string;
+  /** ชั่วโมงจริงจาก start/end ยังไม่คูณตัวคูณ */
   hours: number;
+  multiplier: OtMultiplier;
 };
 
 /** จำนวนวันหยุดชดเชยที่หักได้ต่อครั้ง */
