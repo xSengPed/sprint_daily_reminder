@@ -2,14 +2,15 @@
 
 import { useRef, useState } from "react";
 import { formatShort, todayKey } from "@/lib/date";
-import { computeHours } from "@/lib/ot";
-import type { OtEntry } from "@/lib/types";
+import { computeHours, OT_MULTIPLIERS, weightedHours } from "@/lib/ot";
+import type { OtEntry, OtMultiplier } from "@/lib/types";
 
 type Draft = {
   date: string;
   startTime: string;
   endTime: string;
   description: string;
+  multiplier: OtMultiplier;
 };
 
 type Props = {
@@ -20,12 +21,39 @@ type Props = {
 };
 
 function emptyDraft(date: string): Draft {
-  return { date, startTime: "", endTime: "", description: "" };
+  return { date, startTime: "", endTime: "", description: "", multiplier: 1 };
 }
 
-function draftHours(draft: Draft): string {
-  if (!draft.startTime || !draft.endTime || draft.endTime <= draft.startTime) return "-";
-  return computeHours(draft.startTime, draft.endTime).toFixed(2);
+function draftHours(draft: Draft): number | null {
+  if (!draft.startTime || !draft.endTime || draft.endTime <= draft.startTime) return null;
+  return computeHours(draft.startTime, draft.endTime);
+}
+
+function draftWeightedHours(draft: Draft): string {
+  const hours = draftHours(draft);
+  return hours === null ? "-" : weightedHours({ hours, multiplier: draft.multiplier }).toFixed(2);
+}
+
+function MultiplierSelect({
+  value,
+  onChange,
+}: {
+  value: OtMultiplier;
+  onChange: (v: OtMultiplier) => void;
+}) {
+  return (
+    <select
+      className="field-input"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value) as OtMultiplier)}
+    >
+      {OT_MULTIPLIERS.map((m) => (
+        <option key={m} value={m}>
+          x{m}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props) {
@@ -43,6 +71,7 @@ export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props
       startTime: entry.startTime,
       endTime: entry.endTime,
       description: entry.description,
+      multiplier: entry.multiplier,
     });
     setError(null);
   };
@@ -105,7 +134,9 @@ export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props
             <th>เริ่ม</th>
             <th>จบ</th>
             <th>รายละเอียดงาน</th>
+            <th>ตัวคูณ</th>
             <th>ชม.</th>
+            <th>ชม.สะสม</th>
             <th aria-label="จัดการ" />
           </tr>
         </thead>
@@ -151,7 +182,14 @@ export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props
                     }}
                   />
                 </td>
-                <td className="ot-hours">{draftHours(editDraft)}</td>
+                <td>
+                  <MultiplierSelect
+                    value={editDraft.multiplier}
+                    onChange={(multiplier) => setEditDraft((d) => ({ ...d, multiplier }))}
+                  />
+                </td>
+                <td className="ot-hours">{draftHours(editDraft)?.toFixed(2) ?? "-"}</td>
+                <td className="ot-hours">{draftWeightedHours(editDraft)}</td>
                 <td className="ot-actions">
                   <button className="btn sm primary" onClick={() => void saveEdit()} disabled={busy}>
                     บันทึก
@@ -167,17 +205,19 @@ export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props
                 <td>{entry.startTime}</td>
                 <td>{entry.endTime}</td>
                 <td className="ot-desc">{entry.description}</td>
+                <td>x{entry.multiplier}</td>
                 <td className="ot-hours">{entry.hours.toFixed(2)}</td>
+                <td className="ot-hours">{weightedHours(entry).toFixed(2)}</td>
                 <td className="ot-actions">
                   <button className="btn sm ghost" onClick={() => startEdit(entry)}>
                     แก้ไข
                   </button>
                   <button
-                    className="item-del"
+                    className="btn sm ghost danger"
                     onClick={() => void onDelete(entry.id)}
                     aria-label={`ลบรายการ OT วันที่ ${entry.date}`}
                   >
-                    &times;
+                    ลบ
                   </button>
                 </td>
               </tr>
@@ -221,7 +261,14 @@ export default function OtTable({ entries, onCreate, onUpdate, onDelete }: Props
                 }}
               />
             </td>
-            <td className="ot-hours">{draftHours(newRow)}</td>
+            <td>
+              <MultiplierSelect
+                value={newRow.multiplier}
+                onChange={(multiplier) => setNewRow((d) => ({ ...d, multiplier }))}
+              />
+            </td>
+            <td className="ot-hours">{draftHours(newRow)?.toFixed(2) ?? "-"}</td>
+            <td className="ot-hours">{draftWeightedHours(newRow)}</td>
             <td className="ot-actions">
               <button className="btn sm primary" onClick={() => void submitNewRow()} disabled={busy}>
                 เพิ่ม

@@ -11,6 +11,8 @@ import { formatThai, todayKey } from "@/lib/date";
 import { otBalance } from "@/lib/ot";
 import type { OtDeduction, OtDeductionAmount, OtEntry } from "@/lib/types";
 
+type OtEntryDraft = Omit<OtEntry, "id" | "hours">;
+
 export default function OtPage() {
   const [entries, setEntries] = useState<OtEntry[]>([]);
   const [deductions, setDeductions] = useState<OtDeduction[]>([]);
@@ -53,21 +55,13 @@ export default function OtPage() {
 
   const balance = useMemo(() => otBalance(entries, deductions), [entries, deductions]);
 
-  const createEntry = async (draft: {
-    date: string;
-    startTime: string;
-    endTime: string;
-    description: string;
-  }) => {
+  const createEntry = async (draft: OtEntryDraft) => {
     await api.createOtEntry(draft);
     await load();
     showToast("บันทึกชั่วโมง OT แล้ว");
   };
 
-  const updateEntry = async (
-    id: string,
-    draft: { date: string; startTime: string; endTime: string; description: string }
-  ) => {
+  const updateEntry = async (id: string, draft: OtEntryDraft) => {
     await api.updateOtEntry(id, draft);
     await load();
     showToast("แก้ไขรายการ OT แล้ว");
